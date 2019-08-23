@@ -8,8 +8,6 @@
 //USER SETTINGS
 const int sensor_type = SOUND_SENSOR;
 
-const int pinAdc = A0;
-
 #include <Grove_LED_Bar.h>
 Grove_LED_Bar bar(3, 2, 0, LED_BAR_10); // Clock pin, Data pin, Orientation
 
@@ -23,20 +21,21 @@ void setup()
   bar.begin();
 
   lcd.begin(16, 2);
-  lcd.setRGB(255, 255, 255); //set RGB colour and brightness here
+  lcd.setRGB(55, 55, 55); //set RGB colour and brightness here
 }
 
 void loop()
 {
   float db;
+  long sum;
 
   if (sensor_type == SOUND_SENSOR)
   {
-    long sum = 0;
+    sum = 0;
 
     for (int i = 0; i < 256; i++)
     {
-      sum += analogRead(pinAdc);
+      sum += analogRead(A0);
     }
 
     sum >>= 8;
@@ -46,37 +45,46 @@ void loop()
     db = convert_to_db(sum);
     Serial.print("\t"); Serial.print(db); Serial.println("dB\n");
 
-
-
     delay(10);
   }
   else //loudness sensor
   {
-    int loudness = analogRead(A0);
-    Serial.println(loudness);
-    delay(500);
+    sum = 0;
+
+    for (int i = 0; i < 256; i++)
+    {
+      sum += analogRead(A0);
+    }
+
+    sum >>= 8;
+
+    //    int loudness = analogRead(A0);
+    //    Serial.println(loudness);
+
+    Serial.println(sum);
+    delay(10); //default is 200
   }
 
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("sound level:");
   lcd.setCursor(0, 1);
-  
-  if (db < 80) 
-  {
-    lcd.print("<80dB - safe");
-    set_ledbar_level(7);//8 green bars
-  }
-  else if (db < 91) 
-  {
-    lcd.print("<91dB - caution");
-    set_ledbar_level(8);//plus 1 orange bar
-  }
-  else 
-  {
-    lcd.print(">91dB - danger!");
-    set_ledbar_level(9);//plus the red bar
-  }
+
+    if (db < 80)
+    {
+      lcd.print("<80dB - safe");
+      set_ledbar_level(7);//8 green bars
+    }
+    else if (db < 91)
+    {
+      lcd.print(int(db)); lcd.print("dB - caution");
+      set_ledbar_level(8);//plus 1 orange bar
+    }
+    else
+    {
+      lcd.print(int(db)); lcd.print("dB - danger!");
+      set_ledbar_level(9);//plus the red bar
+    }
 }
 
 //convert raw reading into db
